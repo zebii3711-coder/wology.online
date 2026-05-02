@@ -1,0 +1,474 @@
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0A10;--surface:#111118;--surface2:#18181F;--border:rgba(255,255,255,0.07);
+  --border-h:rgba(255,255,255,0.14);--accent:#7C6FFB;--accent2:#A89AF8;
+  --glow:rgba(124,111,251,0.2);--text:#EEEDF8;--muted:#8884A4;--hint:#4E4C64;
+  --ok:#2ECC8F;--ok-bg:rgba(46,204,143,0.08);--err:#E2524A;--err-bg:rgba(226,82,74,0.08);
+  --r:14px;--rs:8px;--rx:6px;--ease:0.22s cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;position:relative}
+
+/* ── 3-D canvas ── */
+#canvas3d{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* ── layout ── */
+.wrap{position:relative;z-index:1;width:100%;max-width:460px}
+
+/* ── brand ── */
+.brand{text-align:center;margin-bottom:32px;animation:fadeD .55s ease both}
+.logo-ring{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#7C6FFB,#4F3FD4);margin-bottom:16px;box-shadow:0 0 32px rgba(124,111,251,.35),0 8px 24px rgba(124,111,251,.25)}
+.logo-ring svg{width:28px;height:28px}
+.brand h1{font-family:'DM Serif Display',serif;font-size:30px;font-weight:400;letter-spacing:-.5px;margin-bottom:4px}
+.brand .site-link{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.05em;color:var(--accent2);text-decoration:none;border-bottom:1px solid rgba(168,154,248,.35);padding-bottom:1px;transition:color var(--ease),border-color var(--ease)}
+.brand .site-link:hover{color:#fff;border-color:#fff}
+.brand .tagline{margin-top:6px;font-size:13px;color:var(--muted);font-weight:300}
+
+/* ── card ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:34px;position:relative;overflow:hidden;animation:fadeU .55s ease .1s both}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,111,251,.45),transparent)}
+
+/* ── tabs ── */
+.tabs{display:flex;background:var(--surface2);border-radius:var(--rs);padding:4px;gap:4px;margin-bottom:30px}
+.tab{flex:1;padding:10px;border:none;border-radius:var(--rx);font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:var(--ease);background:transparent;color:var(--muted)}
+.tab.on{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(124,111,251,.32)}
+.tab:not(.on):hover{color:var(--text)}
+
+/* ── views ── */
+.view{display:none}.view.on{display:block}
+
+/* ── fields ── */
+.field{margin-bottom:17px}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:6px;transition:color var(--ease)}
+.field:focus-within label{color:var(--accent2)}
+.iw{position:relative;display:flex;align-items:center}
+.ico{position:absolute;left:13px;width:16px;height:16px;color:var(--hint);pointer-events:none;transition:color var(--ease)}
+.field:focus-within .ico{color:var(--accent2)}
+.iw input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px 11px 40px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color var(--ease),box-shadow var(--ease),background var(--ease)}
+.iw input::placeholder{color:var(--hint)}
+.iw input:focus{border-color:var(--accent);background:rgba(124,111,251,.05);box-shadow:0 0 0 3px var(--glow)}
+.iw input.ei{border-color:var(--err);box-shadow:0 0 0 3px rgba(226,82,74,.1)}
+.iw input.vi{border-color:var(--ok)}
+.eye{position:absolute;right:11px;width:30px;height:30px;background:none;border:none;cursor:pointer;color:var(--hint);display:flex;align-items:center;justify-content:center;border-radius:5px;transition:color var(--ease),background var(--ease)}
+.eye:hover{color:var(--muted);background:var(--border)}
+.fm{margin-top:5px;font-size:12px;min-height:15px}
+.fm.e{color:var(--err)}.fm.s{color:var(--ok)}
+
+/* ── strength ── */
+.sbars{display:flex;gap:4px;margin:8px 0 4px}
+.sb{flex:1;height:3px;border-radius:99px;background:var(--border);transition:background .3s}
+.slbl{font-size:11px;color:var(--hint);font-weight:500}
+
+/* ── options ── */
+.opts{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.chk{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-size:13px;color:var(--muted)}
+.chk input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+.lnk{background:none;border:none;font-family:inherit;font-size:13px;color:var(--accent2);cursor:pointer;padding:0;transition:color var(--ease)}
+.lnk:hover{color:#fff;text-decoration:underline}
+
+/* ── submit ── */
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#7C6FFB,#5341D0);border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:all var(--ease);position:relative;overflow:hidden;box-shadow:0 4px 18px rgba(124,111,251,.27)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(124,111,251,.38)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.48;cursor:not-allowed;transform:none}
+.btn .bt{transition:opacity .2s}
+.btn .bl{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.btn.ld .bt{opacity:0}.btn.ld .bl{display:block}
+
+/* ── divider ── */
+.div{display:flex;align-items:center;gap:11px;margin:20px 0}
+.div::before,.div::after{content:'';flex:1;height:1px;background:var(--border)}
+.div span{font-size:12px;color:var(--hint);font-weight:500;white-space:nowrap}
+
+/* ── social ── */
+.soc{width:100%;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all var(--ease);margin-bottom:9px}
+.soc:hover{border-color:var(--border-h);color:var(--text);background:rgba(255,255,255,.04)}
+.soc svg{width:17px;height:17px;flex-shrink:0}
+
+/* ── alert ── */
+.alert{padding:11px 13px;border-radius:var(--rs);font-size:13px;display:none;align-items:flex-start;gap:9px;margin-bottom:18px}
+.alert.on{display:flex}
+.alert.ok{background:var(--ok-bg);color:var(--ok);border:1px solid rgba(46,204,143,.15)}
+.alert.er{background:var(--err-bg);color:var(--err);border:1px solid rgba(226,82,74,.15)}
+.alert svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
+
+/* ── name row ── */
+.nr{display:flex;gap:13px}.nr .field{flex:1}
+
+/* ── terms ── */
+.terms{margin-top:17px;font-size:12px;color:var(--hint);text-align:center;line-height:1.6}
+
+/* ── success ── */
+.succ{display:none;text-align:center;padding:10px 0;animation:fadeU .4s ease both}
+.succ.on{display:block}
+.sico{width:62px;height:62px;background:var(--ok-bg);border:1px solid rgba(46,204,143,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.succ h2{font-family:'DM Serif Display',serif;font-size:25px;font-weight:400;margin-bottom:8px}
+.succ p{font-size:14px;color:var(--muted);margin-bottom:26px;line-height:1.6}
+.gobtn{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;background:linear-gradient(135deg,#7C6FFB,#5341D0);border:none;border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:500;color:#fff;cursor:pointer;transition:all var(--ease);box-shadow:0 4px 16px rgba(124,111,251,.25)}
+.gobtn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,111,251,.38)}
+
+/* ── footer ── */
+.foot{margin-top:18px;text-align:center;font-size:12px;color:var(--hint);animation:fadeU .55s ease .25s both}
+
+@keyframes fadeU{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeD{from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes dash{0%{stroke-dashoffset:30}100%{stroke-dashoffset:0}}
+.ck{stroke-dasharray:30;stroke-dashoffset:30;animation:dash .5s ease .2s forwards}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
+<canvas id="canvas3d"></canvas>
+
+<div class="wrap">
+  <div class="brand">
+    <div class="logo-ring">
+      <svg viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L23 7V15C23 20 18.5 24.5 14 26C9.5 24.5 5 20 5 15V7L14 2Z" fill="white" fill-opacity=".92"/>
+        <path d="M10 14l3 3 5-5" stroke="#7C6FFB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>Welcome back</h1>
+    <a class="site-link" href="https://Wology.Online" target="_blank">Wology.Online</a>
+    <p class="tagline">Sign in to your account or create a new one</p>
+  </div>
+
+  <div class="card" id="authCard">
+    <div class="tabs">
+      <button class="tab on" onclick="sw('login')">Sign In</button>
+      <button class="tab" onclick="sw('register')">Create Account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="view on" id="vLogin">
+      <div class="alert er" id="laAlert"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3M8 11h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span id="laMsg"></span></div>
+      <div class="field">
+        <label>Email address</label>
+        <div class="iw">
+          <svg class="ico" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="10" rx="2" stroke="currentColor" stroke-width="1.25"/><path d="M1.5 6l6.5 4 6.5-4" stroke="currentColor" stroke-width="1.25"/></svg>
+          <input type="email" id="lEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="fm" id="lEmailM"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="iw">
+          <svg class="ico" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.25"/><path d="M5 7V5.5a3 3 0 016 0V7" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1" fill="currentColor"/></svg>
+          <input type="password" id="lPwd" placeholder="Your password" autocomplete="current-password">
+          <button class="eye" onclick="eyeToggle('lPwd',this)" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 8 1.5 8s3 5 6.5 5S14.5 8 14.5 8 11.5 3 8 3z" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.25"/></svg>
+          </button>
+        </div>
+        <div class="fm" id="lPwdM"></div>
+      </div>
+      <div class="opts">
+        <label class="chk"><input type="checkbox" id="rem"><span>Remember me</span></label>
+        <button class="lnk" onclick="swForgot()">Forgot password?</button>
+      </div>
+      <button class="btn" id="lBtn" onclick="doLogin()"><span class="bt">Sign In</span><div class="bl"></div></button>
+      <div class="div"><span>or continue with</span></div>
+      <button class="soc" onclick="doSocial('Google')">
+        <svg viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A9.006 9.006 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+      <button class="soc" onclick="doSocial('GitHub')">
+        <svg viewBox="0 0 18 18" fill="currentColor"><path d="M9 .5A8.5 8.5 0 000 9a8.5 8.5 0 005.8 8.08c.42.08.58-.18.58-.4v-1.4c-2.36.51-2.86-1.14-2.86-1.14-.38-.98-.94-1.24-.94-1.24-.77-.53.06-.52.06-.52.85.06 1.3.87 1.3.87.75 1.3 1.98.92 2.46.7.08-.54.3-.92.54-1.13-1.88-.21-3.86-.94-3.86-4.18 0-.92.33-1.68.87-2.27-.09-.22-.38-1.08.08-2.24 0 0 .71-.23 2.33.87A8.1 8.1 0 019 4.16c.72 0 1.45.1 2.13.29 1.62-1.1 2.33-.87 2.33-.87.46 1.16.17 2.02.08 2.24.54.59.87 1.35.87 2.27 0 3.25-1.98 3.97-3.87 4.18.31.27.58.79.58 1.59v2.36c0 .22.16.48.58.4A8.5 8.5 0 009 .5z"/></svg>
+        Continue with GitHub
+      </button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="view" id="vRegister">
+      <div class="alert er" id="raAlert"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3M8 11h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span id="raMsg"></span></div>
+      <div class="nr">
+        <div class="field">
+          <label>First name</label>
+          <div class="iw">
+            <svg class="ico" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.25"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+            <input type="text" id="rFN" placeholder="Jane" autocomplete="given-name">
+          </div>
+          <div class="fm" id="rFNM"></div>
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <div class="iw">
+            <svg class="ico" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.25"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+            <input type="text" id="rLN" placeholder="Doe" autocomplete="family-name">
+          </div>
+          <div class="fm" id="rLNM"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <div class="iw">
+          <svg class="ico" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="10" rx="2" stroke="currentColor" stroke-width="1.25"/><path d="M1.5 6l6.5 4 6.5-4" stroke="currentColor" stroke-width="1.25"/></svg>
+          <input type="email" id="rEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="fm" id="rEmailM"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="iw">
+          <svg class="ico" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.25"/><path d="M5 7V5.5a3 3 0 016 0V7" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1" fill="currentColor"/></svg>
+          <input type="password" id="rPwd" placeholder="Min. 8 characters" autocomplete="new-password" oninput="strength(this.value)">
+          <button class="eye" onclick="eyeToggle('rPwd',this)" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 8 1.5 8s3 5 6.5 5S14.5 8 14.5 8 11.5 3 8 3z" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.25"/></svg>
+          </button>
+        </div>
+        <div id="strWrap" style="display:none">
+          <div class="sbars"><div class="sb" id="s1"></div><div class="sb" id="s2"></div><div class="sb" id="s3"></div><div class="sb" id="s4"></div></div>
+          <span class="slbl" id="sLbl"></span>
+        </div>
+        <div class="fm" id="rPwdM"></div>
+      </div>
+      <div class="field">
+        <label>Confirm password</label>
+        <div class="iw">
+          <svg class="ico" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.25"/><path d="M5 7V5.5a3 3 0 016 0V7" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><path d="M6.5 11l1 1 2-2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input type="password" id="rCnf" placeholder="Repeat your password" autocomplete="new-password">
+          <button class="eye" onclick="eyeToggle('rCnf',this)" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 8 1.5 8s3 5 6.5 5S14.5 8 14.5 8 11.5 3 8 3z" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.25"/></svg>
+          </button>
+        </div>
+        <div class="fm" id="rCnfM"></div>
+      </div>
+      <div style="margin-bottom:22px">
+        <label class="chk"><input type="checkbox" id="agree"><span>I agree to the <button class="lnk" style="font-size:13px">Terms of Service</button> and <button class="lnk" style="font-size:13px">Privacy Policy</button></span></label>
+      </div>
+      <button class="btn" id="rBtn" onclick="doRegister()"><span class="bt">Create Account</span><div class="bl"></div></button>
+      <p class="terms">By registering you confirm you're at least 13 years old.</p>
+    </div>
+
+    <!-- FORGOT -->
+    <div class="view" id="vForgot">
+      <button onclick="sw('login')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;gap:5px;padding:0;margin-bottom:18px;transition:color .2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Back to sign in
+      </button>
+      <p style="font-size:15px;font-weight:500;margin-bottom:5px">Reset your password</p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">Enter your email and we'll send a reset link.</p>
+      <div class="field">
+        <label>Email address</label>
+        <div class="iw">
+          <svg class="ico" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="10" rx="2" stroke="currentColor" stroke-width="1.25"/><path d="M1.5 6l6.5 4 6.5-4" stroke="currentColor" stroke-width="1.25"/></svg>
+          <input type="email" id="fEmail" placeholder="you@example.com">
+        </div>
+        <div class="fm" id="fMsg"></div>
+      </div>
+      <button class="btn" id="fBtn" onclick="doForgot()"><span class="bt">Send Reset Link</span><div class="bl"></div></button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="succ" id="vSuccess">
+      <div class="sico">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path class="ck" d="M7 14.5l5 5 9-9" stroke="#2ECC8F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 id="succTitle">You're in!</h2>
+      <p id="succMsg">Welcome back. Redirecting to your dashboard…</p>
+      <button class="gobtn" onclick="goMain()">Go to Dashboard <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </div>
+
+  <p class="foot">Protected by 256-bit SSL · Wology.Online</p>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   3-D PARTICLE / GEOMETRY ANIMATION
+══════════════════════════════════════════ */
+(function(){
+  const cv=document.getElementById('canvas3d');
+  const gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');
+  if(!gl){fallback();return;}
+
+  function resize(){cv.width=cv.offsetWidth*devicePixelRatio;cv.height=cv.offsetHeight*devicePixelRatio;gl.viewport(0,0,cv.width,cv.height)}
+  resize();window.addEventListener('resize',resize);
+
+  const VS=`attribute vec3 a;attribute float s;attribute vec3 col;uniform mat4 proj;uniform float t;varying vec3 vc;varying float va;
+  void main(){
+    float ang=a.z+t*0.18+a.x*0.3;
+    float r=length(a.xy)*0.4+1.2;
+    vec3 p=vec3(r*cos(ang)+a.x*0.15,r*sin(ang)*0.6+a.y*0.15,a.z*0.5-2.0+sin(t*0.1+a.x)*0.3);
+    gl_Position=proj*vec4(p,1.0);
+    gl_PointSize=s*(2.0+sin(t+a.x*3.0));
+    vc=col;va=0.5+0.5*sin(t*0.7+a.y*2.0);
+  }`;
+  const FS=`precision mediump float;varying vec3 vc;varying float va;
+  void main(){
+    float d=distance(gl_PointCoord,vec2(.5));
+    if(d>.5)discard;
+    float a=smoothstep(.5,.0,d)*va*0.85;
+    gl_FragColor=vec4(vc,a);
+  }`;
+
+  function mk(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog);gl.useProgram(prog);
+
+  const N=320;
+  const pos=[],siz=[],col=[];
+  const palettes=[[0.49,0.44,0.98],[0.18,0.80,0.56],[0.53,0.82,0.98],[0.98,0.44,0.67],[0.66,0.55,0.98]];
+
+  for(let i=0;i<N;i++){
+    const a=(Math.random()-0.5)*20,b=(Math.random()-0.5)*20,c=(Math.random()-0.5)*12;
+    pos.push(a,b,c);
+    siz.push(1.5+Math.random()*4.5);
+    const p=palettes[Math.floor(Math.random()*palettes.length)];
+    const bright=0.7+Math.random()*0.3;
+    col.push(p[0]*bright,p[1]*bright,p[2]*bright);
+  }
+
+  function buf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);return b}
+  const bPos=buf(pos),bSiz=buf(siz),bCol=buf(col);
+
+  function attr(b,name,size){const loc=gl.getAttribLocation(prog,name);gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0)}
+  attr(bPos,'a',3);attr(bSiz,'s',1);attr(bCol,'col',3);
+
+  const uProj=gl.getUniformLocation(prog,'proj');
+  const uT=gl.getUniformLocation(prog,'t');
+
+  function perspective(fov,aspect,near,far){
+    const f=1/Math.tan(fov/2),nf=1/(near-far);
+    return[f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*nf,-1,0,0,2*far*near*nf,0];
+  }
+
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+
+  let t0=performance.now();
+  function frame(now){
+    const t=(now-t0)/1000;
+    const W=cv.width,H=cv.height;
+    gl.viewport(0,0,W,H);
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    const proj=perspective(1.1,W/H,0.1,100);
+    gl.uniformMatrix4fv(uProj,false,proj);
+    gl.uniform1f(uT,t);
+    gl.drawArrays(gl.POINTS,0,N);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function fallback(){
+    cv.style.display='none';
+    document.body.style.background='radial-gradient(ellipse 70% 50% at 50% 0%,rgba(124,111,251,.14) 0%,transparent 70%)';
+  }
+})();
+
+/* ══════════════════════════════════════════
+   AUTH LOGIC
+══════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+let curTab='login';
+
+function sw(tab){
+  document.querySelectorAll('.tab').forEach((b,i)=>{b.classList.toggle('on',(tab==='login'&&i===0)||(tab==='register'&&i===1))});
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  $('v'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('on');
+  clearAll();curTab=tab;
+}
+function swForgot(){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));$('vForgot').classList.add('on');clearAll()}
+
+function clearAll(){
+  document.querySelectorAll('.alert').forEach(a=>a.classList.remove('on','ok','er'));
+  document.querySelectorAll('.fm').forEach(m=>{m.textContent='';m.className='fm'});
+  document.querySelectorAll('input[type=email],input[type=password],input[type=text]').forEach(i=>i.classList.remove('ei','vi'));
+}
+function alert2(id,msg,type){const el=$(id);const msgEl=$(id.replace('Alert','Msg'));if(el&&msgEl){msgEl.textContent=msg;el.className='alert on '+(type==='e'?'er':'ok')}}
+function fm(id,msg,type){const el=$(id);if(el){el.textContent=msg;el.className='fm '+(type||'')}}
+function st(id,s){const el=$(id);if(el){el.classList.remove('ei','vi');if(s)el.classList.add(s==='e'?'ei':'vi')}}
+function validEmail(e){return/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
+
+function strength(pwd){
+  const w=$('strWrap'),l=$('sLbl'),bars=[$('s1'),$('s2'),$('s3'),$('s4')];
+  if(!pwd){w.style.display='none';return 0}
+  w.style.display='block';
+  let sc=0;
+  if(pwd.length>=8)sc++;if(pwd.length>=12)sc++;
+  if(/[A-Z]/.test(pwd)&&/[a-z]/.test(pwd))sc++;
+  if(/[0-9]/.test(pwd))sc++;if(/[^A-Za-z0-9]/.test(pwd))sc++;
+  sc=Math.min(4,sc);
+  const cols=['','#E2524A','#EF9F27','#2ECC8F','#2ECC8F'];
+  const lbls=['','Weak','Fair','Strong','Very strong'];
+  bars.forEach((b,i)=>{b.style.background=i<sc?cols[sc]:'var(--border)'});
+  l.textContent=lbls[sc];l.style.color=cols[sc]||'var(--hint)';
+  return sc;
+}
+
+function btnLD(id,v){const b=$(id);b.disabled=v;b.classList.toggle('ld',v)}
+
+function showSuccess(title,msg){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelector('.tabs').style.display='none';
+  $('succTitle').textContent=title;$('succMsg').textContent=msg;
+  $('vSuccess').classList.add('on');
+}
+function goMain(){alert('→ Redirecting to Wology.Online main page (wire your router here)')}
+
+function doLogin(){
+  const email=$('lEmail').value.trim(),pwd=$('lPwd').value;
+  let ok=true;
+  if(!email){fm('lEmailM','Email is required','e');st('lEmail','e');ok=false}
+  else if(!validEmail(email)){fm('lEmailM','Enter a valid email','e');st('lEmail','e');ok=false}
+  else{fm('lEmailM','');st('lEmail','v')}
+  if(!pwd){fm('lPwdM','Password is required','e');st('lPwd','e');ok=false}
+  else if(pwd.length<6){fm('lPwdM','At least 6 characters','e');st('lPwd','e');ok=false}
+  else{fm('lPwdM','');st('lPwd','v')}
+  if(!ok)return;
+  btnLD('lBtn',true);
+  setTimeout(()=>{
+    btnLD('lBtn',false);
+    if(email==='demo@example.com'&&pwd==='password123'){showSuccess("You're in!","Welcome back to Wology.Online! Redirecting you now…")}
+    else{alert2('laAlert','Invalid credentials. Try demo@example.com / password123','e');st('lEmail','e');st('lPwd','e')}
+  },1600);
+}
+
+function doRegister(){
+  const fn=$('rFN').value.trim(),ln=$('rLN').value.trim(),email=$('rEmail').value.trim(),pwd=$('rPwd').value,cnf=$('rCnf').value,agreed=$('agree').checked;
+  let ok=true;
+  if(!fn){fm('rFNM','Required','e');st('rFN','e');ok=false}else{st('rFN','v')}
+  if(!ln){fm('rLNM','Required','e');st('rLN','e');ok=false}else{st('rLN','v')}
+  if(!email){fm('rEmailM','Email is required','e');st('rEmail','e');ok=false}
+  else if(!validEmail(email)){fm('rEmailM','Enter a valid email','e');st('rEmail','e');ok=false}
+  else{fm('rEmailM','');st('rEmail','v')}
+  const sc=strength(pwd);
+  if(!pwd){fm('rPwdM','Password is required','e');st('rPwd','e');ok=false}
+  else if(pwd.length<8){fm('rPwdM','Minimum 8 characters','e');st('rPwd','e');ok=false}
+  else if(sc<2){fm('rPwdM','Use a stronger password','e');st('rPwd','e');ok=false}
+  else{fm('rPwdM','');st('rPwd','v')}
+  if(!cnf){fm('rCnfM','Please confirm password','e');st('rCnf','e');ok=false}
+  else if(cnf!==pwd){fm('rCnfM','Passwords do not match','e');st('rCnf','e');ok=false}
+  else{fm('rCnfM','Passwords match','s');st('rCnf','v')}
+  if(!agreed){alert2('raAlert','You must agree to the Terms of Service','e');ok=false}
+  if(!ok)return;
+  btnLD('rBtn',true);
+  setTimeout(()=>{btnLD('rBtn',false);showSuccess('Account created!',`Welcome to Wology.Online, ${fn}! Your account is ready.`)},1800);
+}
+
+function doForgot(){
+  const email=$('fEmail').value.trim();
+  if(!email||!validEmail(email)){fm('fMsg','Enter a valid email','e');st('fEmail','e');return}
+  btnLD('fBtn',true);
+  setTimeout(()=>{btnLD('fBtn',false);fm('fMsg','Reset link sent! Check your inbox.','s');st('fEmail','v')},1400);
+}
+
+function eyeToggle(id,btn){
+  const inp=$(id);const show=inp.type==='password';inp.type=show?'text':'password';
+  btn.innerHTML=show
+    ?'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 2l12 12M6.5 6.7A2 2 0 009.3 9.5M4.5 4.6C2.8 5.8 1.5 8 1.5 8s3 5 6.5 5c1.1 0 2.1-.3 3-.8M7 3.1C7.3 3 7.7 3 8 3c3.5 0 6.5 5 6.5 5s-.6 1.1-1.5 2.2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>'
+    :'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 8 1.5 8s3 5 6.5 5S14.5 8 14.5 8 11.5 3 8 3z" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.25"/></svg>';
+}
+
+function doSocial(p){alert(`Connecting to ${p} for Wology.Online… (integrate OAuth here)`)}
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const v=document.querySelector('.view.on');if(!v)return;
+  if(v.id==='vLogin')doLogin();
+  else if(v.id==='vRegister')doRegister();
+  else if(v.id==='vForgot')doForgot();
+});
+</script>
