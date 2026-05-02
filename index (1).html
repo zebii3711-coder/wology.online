@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOLOGY — Digital & Social Agency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  /* ─── RESET & BASE ─── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --black: #050508;
+    --white: #F5F2ED;
+    --cream: #EDE8DF;
+    --acid: #C8FF00;
+    --muted: #8A8880;
+    --card-bg: #0D0D12;
+    --border: rgba(245,242,237,0.08);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ─── CUSTOM CURSOR ─── */
+  #cursor {
+    width: 12px; height: 12px;
+    background: var(--acid);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s, width 0.3s var(--ease), height 0.3s var(--ease), background 0.3s;
+    mix-blend-mode: difference;
+  }
+  #cursor-ring {
+    width: 40px; height: 40px;
+    border: 1px solid rgba(200,255,0,0.4);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: left 0.12s var(--ease), top 0.12s var(--ease), width 0.3s var(--ease), height 0.3s var(--ease), opacity 0.3s;
+  }
+  body:hover #cursor-ring { opacity: 1; }
+  .cursor-grow #cursor { width: 48px; height: 48px; }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9990; opacity: 0.6;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--acid); border-radius: 2px; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px;
+    transition: background 0.4s, backdrop-filter 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(5,5,8,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .logo span { color: var(--acid); }
+  .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-size: 13px; font-weight: 500; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--muted);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--acid); color: var(--black) !important;
+    padding: 10px 22px; border-radius: 2px;
+    font-weight: 700 !important; letter-spacing: 0.08em !important;
+    transition: opacity 0.2s !important;
+  }
+  .nav-cta:hover { opacity: 0.85 !important; }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 48px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 60% 20%, rgba(200,255,0,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 10% 80%, rgba(200,255,0,0.04) 0%, transparent 50%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 30%, black 30%, transparent 100%);
+  }
+  .hero-tag {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--acid); font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px; opacity: 0;
+    animation: fadeUp 0.8s 0.2s var(--ease) forwards;
+  }
+  .hero-tag::before {
+    content: ''; width: 32px; height: 1px; background: var(--acid);
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(52px, 8vw, 128px);
+    font-weight: 800; line-height: 0.92;
+    letter-spacing: -0.04em;
+    opacity: 0;
+    animation: fadeUp 0.9s 0.35s var(--ease) forwards;
+  }
+  h1 em { font-style: italic; color: var(--acid); }
+  .hero-sub-row {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-top: 48px; gap: 32px;
+    opacity: 0;
+    animation: fadeUp 0.9s 0.55s var(--ease) forwards;
+  }
+  .hero-desc {
+    max-width: 400px;
+    font-size: 16px; color: var(--muted); font-weight: 300; line-height: 1.7;
+  }
+  .hero-actions { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
+  .btn-primary {
+    background: var(--acid); color: var(--black);
+    padding: 16px 36px; font-family: var(--font-display);
+    font-weight: 700; font-size: 14px; letter-spacing: 0.06em;
+    text-transform: uppercase; text-decoration: none;
+    border-radius: 2px; transition: transform 0.2s, opacity 0.2s;
+    display: inline-block;
+  }
+  .btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+  .btn-ghost {
+    color: var(--white); font-size: 13px; font-weight: 500;
+    text-decoration: none; letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 8px;
+    transition: gap 0.3s var(--ease);
+  }
+  .btn-ghost:hover { gap: 14px; }
+  .btn-ghost svg { transition: transform 0.3s var(--ease); }
+  .btn-ghost:hover svg { transform: translateX(4px); }
+
+  /* Scroll indicator */
+  .scroll-indicator {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeIn 1s 1.2s forwards;
+  }
+  .scroll-indicator span {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+  }
+  .scroll-line {
+    width: 1px; height: 48px; background: linear-gradient(var(--acid), transparent);
+    animation: scrollPulse 2s infinite;
+  }
+
+  /* ─── MARQUEE ─── */
+  .marquee-wrap {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden; padding: 18px 0;
+    background: rgba(200,255,0,0.02);
+  }
+  .marquee-track {
+    display: flex; align-items: center; gap: 0;
+    animation: marquee 22s linear infinite;
+    width: max-content;
+  }
+  .marquee-item {
+    display: flex; align-items: center; gap: 32px;
+    padding: 0 32px; white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .marquee-dot { width: 6px; height: 6px; background: var(--acid); border-radius: 50%; flex-shrink: 0; }
+
+  /* ─── SECTIONS ─── */
+  section { padding: 120px 48px; }
+  .section-label {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--acid); font-weight: 600;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+  }
+  .section-label::before { content: ''; width: 24px; height: 1px; background: var(--acid); }
+  h2 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 800; line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  h2 em { font-style: italic; color: var(--acid); }
+
+  /* ─── ABOUT / SPLIT ─── */
+  #about .inner {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .about-visual {
+    position: relative; aspect-ratio: 1;
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .about-visual-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 30%, rgba(200,255,0,0.15), transparent 60%),
+                linear-gradient(135deg, var(--card-bg) 0%, #0a0a14 100%);
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    animation: orbFloat 6s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 200px; height: 200px; background: rgba(200,255,0,0.2); top: 10%; left: 10%; }
+  .orb-2 { width: 120px; height: 120px; background: rgba(100,180,255,0.1); bottom: 20%; right: 15%; animation-delay: 2s; }
+  .stat-grid {
+    position: absolute; bottom: 32px; left: 32px; right: 32px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--border);
+  }
+  .stat-cell {
+    background: rgba(5,5,8,0.8); backdrop-filter: blur(10px);
+    padding: 20px 24px;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 36px; font-weight: 800; letter-spacing: -0.04em; color: var(--acid);
+    display: block; line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); margin-top: 4px;
+  }
+  .about-content { }
+  .about-content p { color: var(--muted); font-size: 17px; line-height: 1.75; margin-top: 28px; font-weight: 300; }
+  .about-pills {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px;
+  }
+  .pill {
+    padding: 8px 18px; border: 1px solid var(--border);
+    border-radius: 100px; font-size: 12px; letter-spacing: 0.05em; color: var(--muted);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .pill:hover { border-color: var(--acid); color: var(--acid); }
+
+  /* ─── SERVICES ─── */
+  #services { background: var(--card-bg); }
+  .services-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 64px; gap: 32px;
+  }
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .service-card {
+    background: var(--card-bg); padding: 48px 40px;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+  }
+  .service-card:hover { background: #101018; }
+  .service-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 0; height: 2px; background: var(--acid);
+    transition: width 0.4s var(--ease);
+  }
+  .service-card:hover::after { width: 100%; }
+  .service-num {
+    font-family: var(--font-display);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+    color: var(--acid); opacity: 0.6; margin-bottom: 32px;
+    display: block;
+  }
+  .service-icon {
+    width: 48px; height: 48px; margin-bottom: 28px;
+    stroke: var(--acid); fill: none; stroke-width: 1.5;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .service-title {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 16px; line-height: 1.1;
+  }
+  .service-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .service-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  .service-tag {
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); background: rgba(245,242,237,0.04);
+    padding: 5px 12px; border-radius: 2px;
+  }
+
+  /* ─── WORK ─── */
+  #work .work-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 64px; gap: 32px;
+  }
+  .work-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+  .work-card {
+    position: relative; border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border); cursor: pointer;
+    transition: transform 0.4s var(--ease), border-color 0.3s;
+  }
+  .work-card:hover { transform: translateY(-4px); border-color: rgba(200,255,0,0.3); }
+  .work-card.large { grid-column: span 7; }
+  .work-card.small { grid-column: span 5; }
+  .work-card.wide { grid-column: span 12; }
+  .work-visual {
+    aspect-ratio: 4/3; position: relative; overflow: hidden;
+  }
+  .work-visual-inner {
+    position: absolute; inset: 0;
+    transition: transform 0.6s var(--ease);
+  }
+  .work-card:hover .work-visual-inner { transform: scale(1.04); }
+  .work-thumb {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 72px; font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+  .wt-1 { background: linear-gradient(135deg, #0a1a00 0%, #1a3300 50%, #0d2600 100%); color: rgba(200,255,0,0.3); }
+  .wt-2 { background: linear-gradient(135deg, #00051a 0%, #001133 100%); color: rgba(80,140,255,0.3); }
+  .wt-3 { background: linear-gradient(135deg, #1a0010 0%, #330020 100%); color: rgba(255,80,160,0.3); }
+  .wt-4 { background: linear-gradient(135deg, #0d0d00 0%, #1a1a00 100%); color: rgba(255,220,0,0.3); }
+  .work-info { padding: 24px 28px; }
+  .work-cat {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--acid); font-weight: 600; margin-bottom: 8px;
+  }
+  .work-name {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .work-desc { font-size: 13px; color: var(--muted); }
+  .work-arrow {
+    position: absolute; top: 20px; right: 20px;
+    width: 36px; height: 36px; background: rgba(5,5,8,0.8);
+    backdrop-filter: blur(8px); border: 1px solid var(--border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: scale(0.8);
+    transition: opacity 0.3s, transform 0.3s var(--ease);
+  }
+  .work-card:hover .work-arrow { opacity: 1; transform: scale(1); }
+
+  /* ─── PROCESS ─── */
+  #process { background: var(--card-bg); }
+  .process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 72px; }
+  .process-step {
+    padding: 48px 32px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .process-step:last-child { border-right: none; }
+  .process-step::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--border);
+    transition: background 0.3s;
+  }
+  .process-step:hover::before { background: var(--acid); }
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 64px; font-weight: 800; letter-spacing: -0.05em;
+    color: rgba(200,255,0,0.08); line-height: 1; margin-bottom: 24px;
+    display: block;
+  }
+  .step-title {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .step-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* ─── TESTIMONIALS ─── */
+  #testimonials { overflow: hidden; }
+  .testimonials-header { margin-bottom: 64px; }
+  .testimonials-track-wrap { overflow: hidden; }
+  .testimonials-track {
+    display: flex; gap: 24px;
+    animation: tScroll 30s linear infinite;
+    width: max-content;
+  }
+  .testimonials-track:hover { animation-play-state: paused; }
+  .tcard {
+    width: 420px; flex-shrink: 0;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 40px;
+  }
+  .tcard-quote {
+    font-size: 17px; line-height: 1.7; font-weight: 300;
+    color: var(--cream); margin-bottom: 32px;
+  }
+  .tcard-quote::before { content: '"'; color: var(--acid); font-size: 32px; font-family: var(--font-display); line-height: 0; vertical-align: -12px; margin-right: 4px; }
+  .tcard-author { display: flex; align-items: center; gap: 16px; }
+  .tcard-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 16px;
+    color: var(--black); flex-shrink: 0;
+  }
+  .tcard-name { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+  .tcard-role { font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* ─── PRICING ─── */
+  #pricing { background: var(--card-bg); }
+  .pricing-header { margin-bottom: 64px; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .price-card {
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 48px 40px; position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s var(--ease);
+  }
+  .price-card:hover { transform: translateY(-4px); }
+  .price-card.featured {
+    border-color: var(--acid);
+    background: linear-gradient(160deg, rgba(200,255,0,0.04) 0%, transparent 60%);
+  }
+  .price-badge {
+    position: absolute; top: 24px; right: 24px;
+    background: var(--acid); color: var(--black);
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 700; padding: 4px 12px; border-radius: 2px;
+  }
+  .price-tier {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin-bottom: 24px;
+  }
+  .price-amount {
+    font-family: var(--font-display);
+    font-size: 56px; font-weight: 800; letter-spacing: -0.04em;
+    line-height: 1; color: var(--white); margin-bottom: 4px;
+  }
+  .price-amount span { font-size: 22px; font-weight: 500; vertical-align: super; }
+  .price-period { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+  .price-divider { height: 1px; background: var(--border); margin-bottom: 32px; }
+  .price-features { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .price-features li {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: var(--muted);
+  }
+  .price-features li.active { color: var(--white); }
+  .check { width: 18px; height: 18px; flex-shrink: 0; }
+  .price-cta {
+    display: block; text-align: center; margin-top: 40px;
+    padding: 14px; border-radius: 2px; font-family: var(--font-display);
+    font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
+    text-decoration: none; transition: opacity 0.2s, transform 0.2s;
+  }
+  .price-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+  .price-cta-filled { background: var(--acid); color: var(--black); }
+  .price-cta-outline { border: 1px solid var(--border); color: var(--white); }
+  .price-cta-outline:hover { border-color: var(--acid); color: var(--acid); }
+
+  /* ─── CTA BAND ─── */
+  #cta {
+    padding: 160px 48px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  #cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,255,0,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-glyph {
+    font-family: var(--font-display);
+    font-size: clamp(80px, 14vw, 220px);
+    font-weight: 800; letter-spacing: -0.05em;
+    color: rgba(200,255,0,0.04); line-height: 1;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none; white-space: nowrap;
+    user-select: none;
+  }
+  .cta-content { position: relative; }
+  .cta-sup {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--acid); font-weight: 600; margin-bottom: 24px; display: block;
+  }
+  #cta h2 { margin-bottom: 24px; }
+  .cta-sub { font-size: 18px; color: var(--muted); max-width: 480px; margin: 0 auto 48px; font-weight: 300; }
+  .cta-actions { display: flex; align-items: center; justify-content: center; gap: 20px; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 64px 48px 48px;
+  }
+  .footer-top {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 64px;
+    margin-bottom: 64px;
+  }
+  .footer-brand .logo { display: block; margin-bottom: 20px; }
+  .footer-desc { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 280px; }
+  .footer-col h4 {
+    font-family: var(--font-display); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px;
+    color: var(--white);
+  }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-links a {
+    font-size: 14px; color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border); padding-top: 32px;
+    font-size: 12px; color: var(--muted);
+  }
+  .footer-socials { display: flex; gap: 20px; }
+  .footer-socials a {
+    color: var(--muted); text-decoration: none; font-size: 12px;
+    letter-spacing: 0.05em; transition: color 0.2s;
+  }
+  .footer-socials a:hover { color: var(--acid); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  @keyframes tScroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+  @keyframes orbFloat {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(20px, -20px) scale(1.1); }
+  }
+
+  /* ─── REVEAL ─── */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ─── MOBILE MENU ─── */
+  .hamburger {
+    display: none; flex-direction: column; gap: 5px; cursor: none;
+    background: none; border: none; padding: 4px;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 1.5px; background: var(--white);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1024px) {
+    nav { padding: 20px 32px; }
+    section { padding: 80px 32px; }
+    #hero { padding: 0 32px 60px; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .process-steps { grid-template-columns: repeat(2, 1fr); }
+    .process-step { border-bottom: 1px solid var(--border); }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 18px 24px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    section { padding: 64px 24px; }
+    #hero { padding: 0 24px 48px; }
+    #about .inner { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .work-card.large, .work-card.small { grid-column: span 12; }
+    .process-steps { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; gap: 40px; }
+    .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+    .hero-sub-row { flex-direction: column; align-items: flex-start; }
+    .services-header, .work-header { flex-direction: column; align-items: flex-start; }
+    body { cursor: auto; }
+    #cursor, #cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- ─── NAV ─── -->
+<nav id="nav">
+  <a href="#" class="logo">WOL<span>OGY</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#cta" class="nav-cta">Start a Project</a></li>
+  </ul>
+  <button class="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-tag">Est. 2024 — Digital & Social Agency</div>
+  <h1>We build<br>digital<br><em>futures.</em></h1>
+
+  <div class="hero-sub-row">
+    <p class="hero-desc">
+      WOLOGY is a full-service digital & social agency crafting immersive digital products, bold social strategies, and brand experiences that scale with ambition.
+    </p>
+    <div class="hero-actions">
+      <a href="#work" class="btn-primary">View Our Work</a>
+      <a href="#cta" class="btn-ghost">
+        Start a project
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ─── MARQUEE ─── -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marqueeTrack">
+    <!-- duplicated for seamless loop -->
+    <div class="marquee-item"><span class="marquee-dot"></span> Brand Identity</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Web Development</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> UI/UX Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Mobile Apps</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Motion Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> AI Products</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Social Media</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Content Creation</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Paid Advertising</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Growth Strategy</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Brand Identity</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Web Development</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> UI/UX Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Mobile Apps</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Motion Design</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> AI Products</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Social Media</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Content Creation</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Paid Advertising</div>
+    <div class="marquee-item"><span class="marquee-dot"></span> Growth Strategy</div>
+  </div>
+</div>
+
+<!-- ─── ABOUT ─── -->
+<section id="about">
+  <div class="inner">
+    <div class="about-visual reveal">
+      <div class="about-visual-bg"></div>
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="stat-grid">
+        <div class="stat-cell">
+          <span class="stat-num">140+</span>
+          <span class="stat-label">Projects Shipped</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num">98%</span>
+          <span class="stat-label">Client Retention</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num">12</span>
+          <span class="stat-label">Global Awards</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num">3×</span>
+          <span class="stat-label">Avg. ROI Delivered</span>
+        </div>
+      </div>
+    </div>
+    <div class="about-content">
+      <div class="section-label reveal">About WOLOGY</div>
+      <h2 class="reveal reveal-delay-1">Where craft<br>meets <em>velocity.</em></h2>
+      <p class="reveal reveal-delay-2">
+        We're a team of 35+ designers, engineers, social strategists, and content creators obsessed with building things that matter. From early-stage startups to global brands, we partner with leaders who refuse to settle.
+      </p>
+      <p class="reveal reveal-delay-3">
+        Every pixel, every post, every campaign and line of code is made with intention. We don't just execute — we co-create growth with you across every channel.
+      </p>
+      <div class="about-pills reveal reveal-delay-4">
+        <span class="pill">React & Next.js</span>
+        <span class="pill">Three.js / WebGL</span>
+        <span class="pill">AI Integration</span>
+        <span class="pill">Social Strategy</span>
+        <span class="pill">Content Creation</span>
+        <span class="pill">Figma → Code</span>
+        <span class="pill">Framer Motion</span>
+        <span class="pill">Node / Python</span>
+        <span class="pill">DevOps & Cloud</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SERVICES ─── -->
+<section id="services">
+  <div class="services-header">
+    <div>
+      <div class="section-label reveal">What We Do</div>
+      <h2 class="reveal reveal-delay-1">Our <em>expertise</em><br>across every channel.</h2>
+    </div>
+    <a href="#cta" class="btn-ghost reveal reveal-delay-2" style="color:var(--muted);font-size:13px;letter-spacing:0.05em;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:8px;transition:gap 0.3s;white-space:nowrap;">
+      All services
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="services-grid">
+    <!-- Card 1 -->
+    <div class="service-card reveal">
+      <span class="service-num">01</span>
+      <svg class="service-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <h3 class="service-title">Web Design & Development</h3>
+      <p class="service-desc">From pixel-perfect interfaces to blazing-fast full-stack platforms. We build web experiences that convert and scale.</p>
+      <div class="service-tags">
+        <span class="service-tag">Next.js</span>
+        <span class="service-tag">Webflow</span>
+        <span class="service-tag">Headless CMS</span>
+      </div>
+    </div>
+    <!-- Card 2 -->
+    <div class="service-card reveal reveal-delay-1">
+      <span class="service-num">02</span>
+      <svg class="service-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <h3 class="service-title">Brand Identity System</h3>
+      <p class="service-desc">We craft brand identities that are coherent, ownable, and built to last — from logo to full design language.</p>
+      <div class="service-tags">
+        <span class="service-tag">Strategy</span>
+        <span class="service-tag">Logo</span>
+        <span class="service-tag">Style Guide</span>
+      </div>
+    </div>
+    <!-- Card 3 -->
+    <div class="service-card reveal reveal-delay-2">
+      <span class="service-num">03</span>
+      <svg class="service-icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <h3 class="service-title">Mobile App Development</h3>
+      <p class="service-desc">Native iOS & Android, and cross-platform apps with React Native that feel premium on every device.</p>
+      <div class="service-tags">
+        <span class="service-tag">React Native</span>
+        <span class="service-tag">Swift</span>
+        <span class="service-tag">Flutter</span>
+      </div>
+    </div>
+    <!-- Card 4 -->
+    <div class="service-card reveal reveal-delay-3">
+      <span class="service-num">04</span>
+      <svg class="service-icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <h3 class="service-title">UI/UX Product Design</h3>
+      <p class="service-desc">Deep user research, interaction design, and prototyping to ship products people love using daily.</p>
+      <div class="service-tags">
+        <span class="service-tag">Figma</span>
+        <span class="service-tag">Prototyping</span>
+        <span class="service-tag">User Testing</span>
+      </div>
+    </div>
+    <!-- Card 5 -->
+    <div class="service-card reveal reveal-delay-1">
+      <span class="service-num">05</span>
+      <svg class="service-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <h3 class="service-title">Social Media Management</h3>
+      <p class="service-desc">Full-service social media management — strategy, content calendars, community management, paid social, and performance analytics across all platforms.</p>
+      <div class="service-tags">
+        <span class="service-tag">Instagram</span>
+        <span class="service-tag">TikTok</span>
+        <span class="service-tag">LinkedIn Ads</span>
+      </div>
+    </div>
+    <!-- Card 6 -->
+    <div class="service-card reveal reveal-delay-2">
+      <span class="service-num">06</span>
+      <svg class="service-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <h3 class="service-title">Growth & Performance</h3>
+      <p class="service-desc">Data-driven paid campaigns, influencer partnerships, content production, and analytics to grow your brand across digital and social channels.</p>
+      <div class="service-tags">
+        <span class="service-tag">CRO</span>
+        <span class="service-tag">SEO</span>
+        <span class="service-tag">Analytics</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── WORK ─── -->
+<section id="work">
+  <div class="work-header">
+    <div>
+      <div class="section-label reveal">Selected Work</div>
+      <h2 class="reveal reveal-delay-1">Projects that<br>define <em>standards.</em></h2>
+    </div>
+    <a href="#" class="btn-ghost reveal reveal-delay-2" style="color:var(--muted);font-size:13px;letter-spacing:0.05em;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:8px;transition:gap 0.3s;white-space:nowrap;">
+      Full case studies
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="work-grid">
+    <div class="work-card large reveal">
+      <div class="work-visual">
+        <div class="work-visual-inner">
+          <div class="work-thumb wt-1">AX</div>
+        </div>
+      </div>
+      <div class="work-info">
+        <div class="work-cat">SaaS · Brand · Web</div>
+        <div class="work-name">Axora — B2B Analytics Platform</div>
+        <div class="work-desc">Full rebrand and product redesign driving 240% increase in trial conversions.</div>
+      </div>
+      <div class="work-arrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+    <div class="work-card small reveal reveal-delay-1">
+      <div class="work-visual">
+        <div class="work-visual-inner">
+          <div class="work-thumb wt-2">NX</div>
+        </div>
+      </div>
+      <div class="work-info">
+        <div class="work-cat">Fintech · Mobile</div>
+        <div class="work-name">Nexo Pay — Crypto Wallet App</div>
+        <div class="work-desc">iOS/Android app serving 800K+ users globally.</div>
+      </div>
+      <div class="work-arrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+    <div class="work-card small reveal reveal-delay-2">
+      <div class="work-visual">
+        <div class="work-visual-inner">
+          <div class="work-thumb wt-3">LM</div>
+        </div>
+      </div>
+      <div class="work-info">
+        <div class="work-cat">Fashion · E-commerce</div>
+        <div class="work-name">Luma — Luxury Marketplace</div>
+        <div class="work-desc">High-end shopping experience with 3D product views and editorial editorial layout.</div>
+      </div>
+      <div class="work-arrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+    <div class="work-card large reveal reveal-delay-3">
+      <div class="work-visual">
+        <div class="work-visual-inner">
+          <div class="work-thumb wt-4">VR</div>
+        </div>
+      </div>
+      <div class="work-info">
+        <div class="work-cat">HealthTech · AI · Web App</div>
+        <div class="work-name">Vera — AI Health Dashboard</div>
+        <div class="work-desc">Intelligent health platform integrating wearables data with GPT-powered insights.</div>
+      </div>
+      <div class="work-arrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROCESS ─── -->
+<section id="process">
+  <div class="section-label reveal">How We Work</div>
+  <h2 class="reveal reveal-delay-1">Our <em>process</em> is<br>your advantage.</h2>
+  <div class="process-steps">
+    <div class="process-step reveal">
+      <span class="step-num">01</span>
+      <h3 class="step-title">Discover & Define</h3>
+      <p class="step-desc">We dive deep into your business, users, and market. Strategic clarity before a single pixel is drawn.</p>
+    </div>
+    <div class="process-step reveal reveal-delay-1">
+      <span class="step-num">02</span>
+      <h3 class="step-title">Design & Prototype</h3>
+      <p class="step-desc">Rapid ideation, wireframes, and high-fidelity prototypes. You'll see the vision before we build it.</p>
+    </div>
+    <div class="process-step reveal reveal-delay-2">
+      <span class="step-num">03</span>
+      <h3 class="step-title">Build & Test</h3>
+      <p class="step-desc">Clean, scalable code with continuous QA. We ship fast without cutting corners on quality.</p>
+    </div>
+    <div class="process-step reveal reveal-delay-3">
+      <span class="step-num">04</span>
+      <h3 class="step-title">Launch & Scale</h3>
+      <p class="step-desc">Deployment, analytics setup, and post-launch optimization. We don't disappear after go-live.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIALS ─── -->
+<section id="testimonials">
+  <div class="testimonials-header">
+    <div class="section-label reveal">Testimonials</div>
+    <h2 class="reveal reveal-delay-1">Clients who <em>trust</em> us.</h2>
+  </div>
+  <div class="testimonials-track-wrap">
+    <div class="testimonials-track" id="tTrack">
+      <!-- Set 1 -->
+      <div class="tcard">
+        <p class="tcard-quote">Working with WOLOGY was a turning point. They didn't just redesign our product — they helped us rethink our entire growth strategy. Revenue doubled in 6 months.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:var(--acid);">SK</div>
+          <div>
+            <div class="tcard-name">Sarah Kim</div>
+            <div class="tcard-role">CEO, Axora</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <p class="tcard-quote">The team's attention to detail is unmatched. Every interaction in our app was thoughtfully designed. Our app store rating went from 3.8 to 4.9.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:#5090ff;">JR</div>
+          <div>
+            <div class="tcard-name">James Reeves</div>
+            <div class="tcard-role">CTO, Nexo Pay</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <p class="tcard-quote">WOLOGY delivered a brand that actually has soul. Our investors noticed immediately. Best decision we made in year one.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:#ff5090;">MA</div>
+          <div>
+            <div class="tcard-name">Mia Arden</div>
+            <div class="tcard-role">Founder, Luma</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <p class="tcard-quote">What sets WOLOGY apart is their strategic thinking. They pushed back on our ideas in the best possible way and the final product exceeded every expectation.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:#ffd700;">TP</div>
+          <div>
+            <div class="tcard-name">Tom Park</div>
+            <div class="tcard-role">VP Product, Vera Health</div>
+          </div>
+        </div>
+      </div>
+      <!-- Set 2 (duplicate for infinite scroll) -->
+      <div class="tcard">
+        <p class="tcard-quote">Working with WOLOGY was a turning point. They didn't just redesign our product — they helped us rethink our entire growth strategy. Revenue doubled in 6 months.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:var(--acid);">SK</div>
+          <div>
+            <div class="tcard-name">Sarah Kim</div>
+            <div class="tcard-role">CEO, Axora</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <p class="tcard-quote">The team's attention to detail is unmatched. Every interaction in our app was thoughtfully designed. Our app store rating went from 3.8 to 4.9.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:#5090ff;">JR</div>
+          <div>
+            <div class="tcard-name">James Reeves</div>
+            <div class="tcard-role">CTO, Nexo Pay</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <p class="tcard-quote">WOLOGY delivered a brand that actually has soul. Our investors noticed immediately. Best decision we made in year one.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:#ff5090;">MA</div>
+          <div>
+            <div class="tcard-name">Mia Arden</div>
+            <div class="tcard-role">Founder, Luma</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <p class="tcard-quote">What sets WOLOGY apart is their strategic thinking. They pushed back on our ideas in the best possible way and the final product exceeded every expectation.</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar" style="background:#ffd700;">TP</div>
+          <div>
+            <div class="tcard-name">Tom Park</div>
+            <div class="tcard-role">VP Product, Vera Health</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ─── -->
+<section id="pricing">
+  <div class="pricing-header">
+    <div class="section-label reveal">Pricing</div>
+    <h2 class="reveal reveal-delay-1">Transparent pricing.<br><em>Zero</em> surprises.</h2>
+  </div>
+  <div class="pricing-grid">
+    <!-- Starter -->
+    <div class="price-card reveal">
+      <div class="price-tier">Starter</div>
+      <div class="price-amount"><span>$</span>4,900</div>
+      <div class="price-period">one-time project</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Landing page or microsite
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Brand kit (logo, colors, fonts)
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Mobile responsive
+        </li>
+        <li>
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Full web app
+        </li>
+        <li>
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Dedicated PM
+        </li>
+      </ul>
+      <a href="#cta" class="price-cta price-cta-outline">Get Started</a>
+    </div>
+    <!-- Growth -->
+    <div class="price-card featured reveal reveal-delay-1">
+      <div class="price-badge">Most Popular</div>
+      <div class="price-tier">Growth</div>
+      <div class="price-amount"><span>$</span>14,900</div>
+      <div class="price-period">one-time project</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Full website or web app
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Complete brand identity system
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          CMS integration & training
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Dedicated project manager
+        </li>
+        <li>
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Mobile app development
+        </li>
+      </ul>
+      <a href="#cta" class="price-cta price-cta-filled">Start Project</a>
+    </div>
+    <!-- Enterprise -->
+    <div class="price-card reveal reveal-delay-2">
+      <div class="price-tier">Enterprise</div>
+      <div class="price-amount" style="font-size:40px;letter-spacing:-0.03em;">Custom</div>
+      <div class="price-period">tailored engagement</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Everything in Growth
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Mobile app (iOS + Android)
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          AI feature development
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Dedicated engineering team
+        </li>
+        <li class="active">
+          <svg class="check" viewBox="0 0 24 24" fill="none" stroke="var(--acid)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Ongoing retainer support
+        </li>
+      </ul>
+      <a href="#cta" class="price-cta price-cta-outline">Let's Talk</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section id="cta">
+  <div class="cta-glyph">LET'S<br>BUILD</div>
+  <div class="cta-content">
+    <span class="cta-sup reveal">Ready to Begin?</span>
+    <h2 class="reveal reveal-delay-1">Your next chapter<br>starts <em>here.</em></h2>
+    <p class="cta-sub reveal reveal-delay-2">Tell us about your vision. We'll get back within 24 hours with a game plan.</p>
+    <div class="cta-actions reveal reveal-delay-3">
+      <a href="mailto:wologyagency@gmail.com" class="btn-primary">wologyagency@gmail.com</a>
+      <a href="#" class="btn-ghost">
+        Book a call
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="logo">WOL<span>OGY</span></a>
+      <p class="footer-desc">Building digital products, social strategies, and brands for the next generation of companies. Based globally, working remotely.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul class="footer-links">
+        <li><a href="#">Web Development</a></li>
+        <li><a href="#">Brand Identity</a></li>
+        <li><a href="#">Mobile Apps</a></li>
+        <li><a href="#">UI/UX Design</a></li>
+        <li><a href="#">AI Products</a></li>
+        <li><a href="#">Social Media</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul class="footer-links">
+        <li><a href="#">About</a></li>
+        <li><a href="#">Work</a></li>
+        <li><a href="#">Process</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul class="footer-links">
+        <li><a href="#">wologyagency@gmail.com</a></li>
+        <li><a href="#">Start a Project</a></li>
+        <li><a href="#">Book a Call</a></li>
+        <li><a href="#">Press Kit</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 WOLOGY Studio. All rights reserved.</span>
+    <div class="footer-socials">
+      <a href="#">Twitter</a>
+      <a href="#">LinkedIn</a>
+      <a href="#">Dribbble</a>
+      <a href="#">GitHub</a>
+      <a href="#">Instagram</a>
+    </div>
+    <span>Privacy · Terms</span>
+  </div>
+</footer>
+
+<script>
+  // ── Cursor ──
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+    ring.style.left = mx + 'px';
+    ring.style.top = my + 'px';
+  });
+  document.querySelectorAll('a, button, .work-card, .service-card').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('cursor-grow'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-grow'));
+  });
+
+  // ── Sticky Nav ──
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // ── Scroll Reveal ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Parallax Hero Grid ──
+  const heroGrid = document.querySelector('.hero-grid');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (heroGrid) heroGrid.style.transform = `translateY(${y * 0.3}px)`;
+  });
+
+  // ── Smooth anchor scroll ──
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  // ── Active nav link ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const sectionObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(link => {
+          link.style.color = link.getAttribute('href') === '#' + e.target.id ? 'var(--white)' : '';
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+  sections.forEach(s => sectionObserver.observe(s));
+
+  // ── Counter animation ──
+  function animateCounter(el, target, suffix = '') {
+    const duration = 1800;
+    const start = performance.now();
+    const update = now => {
+      const t = Math.min((now - start) / duration, 1);
+      const val = Math.round(t * target);
+      el.textContent = val + suffix;
+      if (t < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+  const statObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const nums = e.target.querySelectorAll('.stat-num');
+        nums.forEach(n => {
+          const text = n.textContent;
+          if (text.includes('+')) animateCounter(n, parseInt(text), '+');
+          else if (text.includes('%')) animateCounter(n, parseInt(text), '%');
+          else if (text.includes('×')) animateCounter(n, parseInt(text), '×');
+          else animateCounter(n, parseInt(text), '');
+        });
+        statObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  const statGrid = document.querySelector('.stat-grid');
+  if (statGrid) statObserver.observe(statGrid);
+
+  // ── Marquee pause on hover ──
+  const mt = document.getElementById('marqueeTrack');
+  if (mt) {
+    mt.addEventListener('mouseenter', () => mt.style.animationPlayState = 'paused');
+    mt.addEventListener('mouseleave', () => mt.style.animationPlayState = 'running');
+  }
+</script>
+</body>
+</html>
